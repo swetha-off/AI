@@ -1,0 +1,68 @@
+from collections import deque
+
+# Goal state
+goal_state = [[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 0]]  # 0 = blank tile
+
+# Moves: up, down, left, right
+moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+
+def get_neighbors(board, empty_pos):
+    neighbors = []
+    x, y = empty_pos
+    for dx, dy in moves:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < 3 and 0 <= ny < 3:
+            new_board = [row[:] for row in board]  # copy board
+            new_board[x][y], new_board[nx][ny] = new_board[nx][ny], new_board[x][y]
+            neighbors.append((new_board, (nx, ny)))
+    return neighbors
+
+
+def bfs(start_board):
+    # Find blank (0) position
+    empty_pos = None
+    for i in range(3):
+        for j in range(3):
+            if start_board[i][j] == 0:
+                empty_pos = (i, j)
+
+    queue = deque([(start_board, empty_pos, [])])  # (board, empty position, path)
+    visited = set()
+
+    while queue:
+        board, pos, path = queue.popleft()
+
+        if board == goal_state:
+            return path + [board]
+
+        # Convert board to tuple so it can be stored in set
+        board_tuple = tuple(tuple(row) for row in board)
+        if board_tuple in visited:
+            continue
+        visited.add(board_tuple)
+
+        for neighbor, new_pos in get_neighbors(board, pos):
+            queue.append((neighbor, new_pos, path + [board]))
+
+    return None
+
+
+if __name__ == "__main__":
+    # Example starting state
+    start_board = [[1, 2, 3],
+                   [4, 0, 6],
+                   [7, 5, 8]]
+
+    solution = bfs(start_board)
+
+    if solution:
+        print("Steps to solve the 8-Puzzle:")
+        for step in solution:
+            for row in step:
+                print(row)
+            print()
+    else:
+        print("No solution found.")
